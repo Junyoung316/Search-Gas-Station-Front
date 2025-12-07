@@ -1,0 +1,963 @@
+/* 전체 컨테이너: 세로 배치 (헤더 + 내용) */
+.app-container {
+  display: flex;
+  flex-direction: column; /* 위아래로 배치 */
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 1. 상단 헤더 스타일 */
+/* 기존 .header 수정 */
+.header {
+  height: 60px;
+  background-color: #333;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 20;
+}
+
+/* 우측 영역 (검색창 + 버튼들)을 한 그룹으로 묶음 */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* 검색창과 로그인 버튼 사이 간격 */
+}
+
+/* ------------------------------------------------ */
+/* ▼▼▼ 슬라이딩 검색창 스타일 (핵심) ▼▼▼ */
+/* ------------------------------------------------ */
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* 오른쪽 정렬 */
+  background-color: transparent;
+  border-radius: 20px;
+  padding: 0;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  height: 40px;
+}
+
+/* 활성화(열림) 상태 */
+.search-wrapper.active {
+  background-color: white;
+  width: 280px;
+  border-color: #ddd;
+  padding-left: 15px;
+}
+
+/* 버튼 (돋보기 <-> X) */
+.search-toggle-btn {
+  width: 40px; 
+  height: 40px;
+  border-radius: 50%;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px; /* 아이콘 크기 */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.search-toggle-btn:hover {
+  background-color: rgba(255,255,255,0.1);
+  transform: rotate(90deg); /* (선택사항) X로 변할 때 살짝 회전 효과 */
+}
+
+/* 열렸을 때 버튼 색상 (흰 배경이라 검은색으로) */
+.search-wrapper.active .search-toggle-btn {
+  color: #555;
+  background-color: transparent;
+  transform: rotate(0deg); /* 회전 복귀 */
+}
+.search-wrapper.active .search-toggle-btn:hover {
+  background-color: #eee;
+  color: #d9534f; /* 닫기일 때는 빨간색 틴트 */
+}
+
+/* 입력창 */
+.search-input-slide {
+  width: 0;
+  opacity: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  color: #333;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+/* 활성화 시 입력창 */
+.search-wrapper.active .search-input-slide {
+  width: 100%;
+  opacity: 1;
+}
+
+.logo {
+  font-size: 1.2rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.header-menu button {
+  margin-left: 10px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.login-btn { background: transparent; color: white; border: 1px solid white !important; }
+.signup-btn { background: white; color: #333; }
+
+
+/* 2. 스플릿 뷰 영역 (헤더 제외한 나머지 전체) */
+.content-wrapper {
+  display: flex; /* 좌우 배치 */
+  flex: 1;       /* 남은 높이 모두 차지 */
+  overflow: hidden;
+}
+
+/* [왼쪽] 사이드바 */
+.sidebar {
+  width: 380px;
+  height: 100%;
+  background: white;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+
+.sidebar-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background: #f8f9fa;
+}
+
+/* .station-item {
+  background: white;
+  padding: 15px;
+  margin-bottom: 10px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  cursor: pointer;
+} */
+.station-item:hover { border-color: #aaa; }
+
+/* --- 리스트 아이템 레이아웃 수정 --- */
+
+.station-item {
+    /* 기존 스타일 유지 */
+    padding: 15px; 
+    margin-bottom: 10px;
+    border: 1px solid #eee;
+    border-radius: 12px; /* 좀 더 둥글게 */
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+.station-item.active {
+    border: 2px solid #1890ff; /* 파란색 테두리 */
+    background-color: #f0f7ff;
+}
+
+/* 1. 상단 헤더 (태그 + 가격) */
+.item-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+/* 브랜드 태그 (왼쪽 상단) */
+.station-brand-tag {
+    font-size: 11px;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: white;
+    background-color: #888; /* 기본 회색 */
+}
+
+/* 브랜드별 색상 (현대오일뱅크, SK 등) */
+.brand-HDO { background-color: #00469b; } /* 진한 파랑 */
+.brand-SKE { background-color: #ff0000; } /* SK 빨강 */
+.brand-GSC { background-color: #00a0e9; } /* GS 칼텍스 하늘색 */
+.brand-SOL { background-color: #e50011; } /* S-OIL 노랑/빨강 */
+.brand-RTO { background-color: #4CAF50; } /* 알뜰 녹색 */
+
+/* 가격 (오른쪽 상단) */
+.station-price-large {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #d9534f; /* 붉은색 */
+}
+
+/* 2. 주유소 이름 (크고 굵게) */
+.station-name-lg {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+/* 3. 하단 정보 및 화살표 */
+.item-footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 10px;
+}
+.station-distance-icon {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.next-arrow {
+    color: #bbb;
+}
+
+
+/* [오른쪽] 지도 컨테이너 */
+.map-container {
+  flex: 1; /* 나머지 너비 모두 차지 */
+  position: relative;
+  height: 100%;
+}
+
+/* ... 기존 스타일 ... */
+
+/* 아이콘 전용 버튼 스타일 */
+.icon-btn {
+  width: 36px;  /* 너비 */
+  height: 36px; /* 높이 (너비와 같게 해서 정사각형 만듦) */
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px; /* 모서리 둥글게 */
+  color: #555;
+  font-size: 16px;
+  cursor: pointer;
+  
+  /* 아이콘 정중앙 정렬 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.icon-btn:hover {
+  background-color: #f0f0f0;
+  color: #333;
+  border-color: #bbb;
+}
+
+
+/* --- 모달 스타일 --- */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9995;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-box {
+  background: white;
+  width: 380px;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.modal-header h2 { margin: 0; font-size: 18px; }
+
+.close-icon {
+  background: none; border: none; font-size: 24px; cursor: pointer; color: #999;
+}
+.close-icon:hover { color: #333; }
+
+/* 폼 요소 스타일 */
+.filter-group h3 {
+  font-size: 15px; margin-bottom: 10px; color: #555; display: flex; align-items: center; gap: 8px;
+}
+
+.custom-select {
+  width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;
+}
+
+.radio-group {
+  display: flex; flex-wrap: wrap; gap: 15px;
+}
+
+.radio-label {
+  display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 14px;
+}
+.radio-label input { accent-color: #333; transform: scale(1.1); }
+
+hr { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
+
+.apply-btn {
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #333; color: white;
+  border: none; border-radius: 6px;
+  font-weight: bold; cursor: pointer;
+  transition: 0.2s;
+}
+.apply-btn:hover { background-color: #555; }
+
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}
+
+/* 지도 오른쪽 아래 위치 버튼 스타일 */
+#recenterBtn {
+    position: absolute;
+    bottom: 30px; /* 아래에서 띄우기 */
+    right: 30px; /* 오른쪽에서 띄우기 */
+    z-index: 15; /* 지도 마커보다 위에 오도록 */
+    
+    width: 45px;
+    height: 45px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 50%; /* 원형 버튼 */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    
+    cursor: pointer;
+    font-size: 18px;
+    color: #333;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+#recenterBtn:hover {
+    background-color: #f0f0f0;
+    color: #1e88e5; /* 호버 시 파란색 강조 */
+}
+
+/* 선택된 리스트 항목 강조 */
+.station-item.active {
+    border: 2px solid #1890ff; /* 파란색 테두리 */
+    background-color: #e6f7ff; /* 연한 파란색 배경 */
+    box-shadow: 0 0 10px rgba(24, 144, 255, 0.3);
+}
+
+/* --- 상세 모달 내부 스타일 --- */
+
+/* 1. 가격 강조 섹션 */
+.price-focus-section {
+    background-color: #f0f7ff; /* 연한 파란색 배경 */
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.price-label {
+    font-size: 14px;
+    color: #0056b3;
+    margin: 0;
+}
+.price-value-lg {
+    font-size: 2.5rem; /* 매우 크게 */
+    font-weight: 900;
+    color: #d9534f;
+    margin: 5px 0 0 0;
+}
+
+/* 2. 일반 섹션 스타일 */
+.detail-section {
+    padding: 15px 0;
+    border-top: 1px solid #eee;
+}
+.section-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+    margin: 0 0 15px 0;
+}
+
+/* 3. 가격 그리드 */
+.price-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* 120px 너비로 반응형 배치 */
+    gap: 15px;
+}
+.price-card {
+    background-color: #fafafa;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+.price-card.is-highlighted {
+    border-color: #1890ff; /* 현재 유종 강조 테두리 */
+    background-color: #e8f4ff;
+    box-shadow: 0 0 5px rgba(24, 144, 255, 0.2);
+}
+.fuel-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    margin: 0 0 3px 0;
+}
+.fuel-price {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+.fuel-date {
+    font-size: 10px;
+    color: #aaa;
+    margin: 3px 0 0 0;
+}
+
+/* 4. 부가 서비스 리스트 */
+.service-icons .service-list {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* 5. 주소/전화번호 */
+.address-info p {
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.address-text span, .tel-text span {
+    font-weight: 500;
+    color: #333;
+}
+
+/* --- 회원가입 모달 스타일 --- */
+
+/* 모달 박스 크기 및 패딩 */
+.signup-box {
+    width: 420px;
+    padding: 40px 30px;
+    border-radius: 12px;
+    background-color: white;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    position: relative;
+}
+
+/* 헤더 (중앙 정렬) */
+.modal-header-center {
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+.modal-header-center h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* 닫기 버튼 (우측 상단 절대 위치) */
+.close-icon-abs {
+    position: absolute;
+    top: -20px;
+    right: -10px;
+    font-size: 28px;
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+}
+.close-icon-abs:hover { color: #333; }
+
+/* 아이콘 및 설명 텍스트 */
+.signup-intro {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.user-icon-circle {
+    width: 60px;
+    height: 60px;
+    background-color: #e6f0ff; /* 연한 파랑 배경 */
+    color: #1890ff; /* 파란색 아이콘 */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin: 0 auto 15px auto;
+}
+.signup-intro p {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* 폼 스타일 */
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 5px;
+    color: #333;
+}
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd; /* 회색 테두리 */
+    border-radius: 6px;
+    background-color: #444; /* 입력창 배경 어둡게 (이미지 참고) */
+    color: white; /* 글자색 흰색 */
+    font-size: 14px;
+    box-sizing: border-box; /* 패딩 포함 너비 계산 */
+}
+/* 입력창 포커스 시 */
+.form-group input:focus {
+    outline: none;
+    border-color: #1890ff;
+}
+
+/* 가입하기 버튼 */
+.submit-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: #333; /* 검은색 버튼 */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.2s;
+}
+.submit-btn:hover {
+    background-color: #555;
+}
+
+/* 하단 로그인 링크 */
+.modal-footer-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #666;
+}
+.modal-footer-link a {
+    color: #1890ff;
+    font-weight: bold;
+    text-decoration: none;
+    margin-left: 5px;
+}
+.modal-footer-link a:hover {
+    text-decoration: underline;
+}
+
+/* --- 프로필 아바타 스타일 --- */
+.profile-dropdown-container {
+  position: relative; /* 드롭다운 위치 기준 */
+}
+
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  background-color: #1890ff; /* 파란색 배경 */
+  color: white;
+  border-radius: 50%; /* 원형 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  user-select: none;
+  border: 2px solid white; /* 테두리 */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+}
+
+.profile-avatar:hover {
+  transform: scale(1.05); /* 살짝 커짐 */
+  background-color: #0073e6;
+}
+
+/* --- 드롭다운 메뉴 스타일 --- */
+.dropdown-menu {
+  position: absolute;
+  top: 50px; /* 아바타 바로 아래 */
+  right: 0;
+  width: 200px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: 1px solid #eee;
+  z-index: 1000;
+  overflow: hidden;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* 드롭다운 내부 */
+.dropdown-header {
+  padding: 15px;
+  background-color: #f9f9f9;
+  font-size: 14px;
+  color: #333;
+}
+.user-name {
+  font-weight: bold;
+  font-size: 16px;
+  color: #000;
+}
+.user-email {
+  font-size: 12px;
+  color: #888;
+}
+
+/* 구분선 */
+.dropdown-menu hr {
+  margin: 0;
+  border: none;
+  border-top: 1px solid #eee;
+}
+
+/* 메뉴 아이템 버튼 */
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 12px 15px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item i {
+  margin-right: 10px;
+  width: 16px;
+  text-align: center;
+  color: #666;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f8ff;
+  color: #1890ff;
+}
+.dropdown-item:hover i {
+  color: #1890ff;
+}
+
+/* 로그아웃 버튼 (빨간색 강조) */
+.dropdown-item.logout {
+  color: #d9534f;
+}
+.dropdown-item.logout:hover {
+  background-color: #fff0f0;
+  color: #c9302c;
+}
+.dropdown-item.logout i {
+  color: #d9534f;
+}
+
+/* --- 설정 모달 (Settings) 스타일 --- */
+
+.settings-box {
+    width: 450px;
+    padding: 30px;
+}
+
+.settings-desc {
+    font-size: 13px;
+    color: #666;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.settings-group {
+    margin-bottom: 25px;
+}
+
+.settings-group h3 {
+    font-size: 15px;
+    margin-bottom: 12px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 라디오 박스 그리드 스타일 */
+.radio-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.radio-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: white;
+}
+
+.radio-box input {
+    display: none; /* 실제 라디오 버튼 숨김 */
+}
+
+.radio-box span {
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+}
+
+/* 선택된 라디오 박스 강조 */
+.radio-box.selected {
+    border-color: #1890ff;
+    background-color: #e6f7ff;
+    color: #1890ff;
+}
+.radio-box.selected span {
+    color: #1890ff;
+    font-weight: bold;
+}
+
+/* 토글 스위치 스타일 (정렬) */
+.toggle-switch-container {
+    display: flex;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.toggle-option {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    font-size: 14px;
+    color: #666;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.toggle-option input { display: none; }
+
+.toggle-option.active {
+    background-color: white;
+    color: #333;
+    font-weight: bold;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* 하단 버튼 그룹 */
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.cancel-btn {
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #666;
+}
+.cancel-btn:hover { background-color: #f5f5f5; }
+
+.save-btn {
+    padding: 10px 25px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.save-btn:hover { background-color: #555; }
+.save-btn:disabled { background-color: #aaa; cursor: not-allowed; }
+
+/* --- 내 정보 모달 (MyInfoModal) --- */
+
+.myinfo-box {
+    width: 420px;
+    padding: 0; /* 내부 패딩은 content에서 처리 */
+    overflow: hidden; /* 헤더 고정, 내용만 스크롤 */
+    display: flex;
+    z-index: 9997;
+    flex-direction: column;
+    max-height: 85vh; /* 화면 꽉 차지 않게 */
+}
+
+/* 헤더 */
+.myinfo-box .modal-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+}
+
+/* 내용 영역 (스크롤 가능) */
+.scrollable-content {
+    padding: 25px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* 프로필 이미지 */
+.profile-edit-section { 
+    display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; 
+}
+.profile-img-wrapper { 
+    width: 90px; height: 90px; border-radius: 50%; overflow: hidden; position: relative; cursor: pointer; 
+    border: 1px solid #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.profile-img { width: 100%; height: 100%; object-fit: cover; }
+.profile-placeholder { width: 100%; height: 100%; background: #f0f0f0; display: flex; justify-content: center; align-items: center; font-size: 36px; color: #aaa; }
+.edit-overlay { 
+    position: absolute; bottom: 0; width: 100%; height: 30px; background: rgba(0,0,0,0.5); 
+    display: flex; justify-content: center; align-items: center; color: white; font-size: 14px; opacity: 0; transition: 0.2s; 
+}
+.profile-img-wrapper:hover .edit-overlay { opacity: 1; }
+
+.email-text { margin: 10px 0 5px 0; color: #333; font-weight: bold; font-size: 16px; }
+
+/* 구분선 */
+.divider { border: 0; border-top: 1px solid #f0f0f0; margin: 25px 0; }
+
+/* 섹션 스타일 */
+.section-block { margin-bottom: 10px; }
+.section-title { font-size: 14px; font-weight: bold; color: #666; margin-bottom: 10px; }
+
+/* 인풋 그룹 (닉네임) */
+.input-group { display: flex; gap: 8px; }
+.input-group input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+.btn-secondary { padding: 0 15px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;}
+.btn-secondary:hover { background: #555; }
+
+/* 비밀번호 폼 */
+.password-form-stack input { 
+    width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px;
+}
+/* --- 비밀번호 변경 버튼 (메인 액션 스타일) --- */
+.btn-password-change {
+    width: 100%;
+    padding: 12px;
+    background-color: #333; /* 짙은 회색 배경 */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-password-change:hover {
+    background-color: #555; /* 호버 시 약간 밝게 */
+    transform: translateY(-1px);
+}
+
+.btn-password-change:active {
+    transform: translateY(0);
+}
+
+/* --- 회원 탈퇴 버튼 (은은한 경고 스타일) --- */
+.withdraw-section {
+    text-align: center;
+    margin-top: 40px; /* 위쪽 여백 확보 */
+    padding-top: 20px;
+    border-top: 1px dashed #eee; /* 점선으로 구분 */
+}
+
+.btn-withdraw {
+    background-color: transparent;
+    border: 1px solid #ddd;
+    color: #999; /* 평소엔 회색으로 덜 눈에 띄게 */
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* 호버 시 붉은색 경고 느낌 */
+.btn-withdraw:hover {
+    border-color: #d9534f;
+    color: #d9534f;
+    background-color: #fff5f5; /* 아주 연한 붉은 배경 */
+}
+
+/* 탈퇴 버튼 (맨 밑) */
+.withdraw-section {
+    text-align: center;
+    margin-top: 30px;
+}
+.btn-text-danger {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 5px;
+}
+.btn-text-danger:hover {
+    color: #d9534f;
+    font-weight: bold;
+}
