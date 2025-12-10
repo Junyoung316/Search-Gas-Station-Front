@@ -1,3 +1,5 @@
+import { toast } from 'react-toastify';
+
 export const customFetch = async (url, options = {}) => {
   // 1. 기본 헤더 설정 (기존 options.headers가 있으면 병합)
   const headers = {
@@ -24,7 +26,6 @@ export const customFetch = async (url, options = {}) => {
     const refreshToken = localStorage.getItem('rtoken'); // 리프레시 토큰 키 확인
     
     if (!refreshToken) {
-      handleSessionExpired(); 
       return response;
     }
 
@@ -77,6 +78,12 @@ function handleSessionExpired() {
   localStorage.removeItem('atoken');
   localStorage.removeItem('rtoken');
   localStorage.removeItem('nickname');
-  console.log("세션이 만료되었습니다. 다시 로그인해주세요.");
-  window.location.href = "/"; 
+  // 콘솔 로그 확인
+  console.log("세션 만료됨. 로그인 모달 오픈 이벤트를 발생시킵니다.");
+
+  // ★ 핵심: 'open-login-modal'이라는 이름의 커스텀 이벤트를 발생시킴
+  const event = new CustomEvent('open-login-modal', { 
+      detail: { message: "세션이 만료되었습니다. 다시 로그인해주세요." } 
+  });
+  window.dispatchEvent(event);
 }

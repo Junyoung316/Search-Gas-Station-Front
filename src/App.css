@@ -961,3 +961,12 @@ hr { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
     color: #d9534f;
     font-weight: bold;
 }
+
+.btn-favorite:active {
+    transform: scale(1.2); /* 클릭 시 살짝 커짐 */
+}
+
+/* 찜 버튼 호버 시 약간 진하게 */
+.btn-favorite:hover {
+    opacity: 0.8;
+}

@@ -73,6 +73,30 @@ function App() {
       .catch(err => console.error("내 정보 로드 실패:", err));
   };
 
+  useEffect(() => {
+    const handleOpenLoginModal = (event) => {
+      // 1. 만약 메시지가 있다면 토스트로 띄워줍니다.
+      if (event.detail && event.detail.message) {
+        toast.info(event.detail.message);
+      }
+      
+      // 2. 로그인 모달 열기
+      setIsLoginOpen(true);
+      
+      // 3. (선택) 로그아웃 상태 처리
+      setIsLoggedIn(false);
+      setUserNickname('');
+      setUserProfileImage(null);
+    };
+
+    window.addEventListener('open-login-modal', handleOpenLoginModal);
+
+    // 컴포넌트 언마운트 시 리스너 제거 (메모리 누수 방지)
+    return () => {
+      window.removeEventListener('open-login-modal', handleOpenLoginModal);
+    };
+  }, []);
+
   // [공통 함수] 데이터 불러오기 (유지)
   const fetchStations = (lat, lng, currentFilters) => {
     const [katecX, katecY] = proj4("WGS84", katecDef, [lng, lat]);
@@ -333,6 +357,8 @@ function App() {
     setUserNickname(newNickname); // 1. App의 상태 변경 (Header 자동 갱신)
     localStorage.setItem('nickname', newNickname); // 2. 로컬 스토리지 동기화 (새로고침 대비)
   };
+
+  
 
   return (
     <div className="app-container">
