@@ -1,70 +1,104 @@
-import React, { useState, useEffect } from 'react'; 
-import { Map, MapMarker } from "react-kakao-maps-sdk";
-import proj4 from 'proj4';
+import React, { useEffect, useState } from 'react';
+import { Map, CustomOverlayMap } from "react-kakao-maps-sdk";
+import '../App.css'; // CSS 파일 import 확인
 
-const katecDef = "+proj=tmerc +lat_0=38 +lon_0=128 +k=0.9999 +x_0=400000 +y_0=600000 +ellps=bessel +towgs84=-115.80,474.99,674.11,1.16,-2.31,-1.63,6.43 +units=m +no_defs";
+function GasMap({ mapCenter, stations, level, onRecenter, activeStationId }) { 
+  
+  // 1. 지도 인스턴스 저장
+  const [map, setMap] = useState(null); 
 
-function GasMap({ mapCenter, stations, level, onRecenter, activeStationId, searchBounds }) { 
-  const [mapInstance, setMapInstance] = useState(null); 
-
+  // 2. [핵심] 마커 리스트(stations)가 바뀔 때마다 지도 범위 재설정 (Auto-fit)
   useEffect(() => {
-    if (mapInstance && searchBounds) {
-      // 카카오맵 Bounds 객체 생성
-      const bounds = new window.kakao.maps.LatLngBounds();
-      
-      // 영역의 남서쪽(Min), 북동쪽(Max) 좌표 추가
-      bounds.extend(new window.kakao.maps.LatLng(searchBounds.minLat, searchBounds.minLng));
-      bounds.extend(new window.kakao.maps.LatLng(searchBounds.maxLat, searchBounds.maxLng));
+    // 지도가 로드되지 않았거나 마커가 없으면 중단
+    if (!map || stations.length === 0) return;
 
-      // ★ 지도를 해당 영역이 다 보이도록 조정 (패딩 포함)
-      mapInstance.setBounds(bounds);
-      
-      console.log("🗺️ 검색 결과에 맞춰 지도 영역 조정 완료");
+    // ★ 중요: 사용자가 특정 주유소를 클릭해서 보고 있을 때(상세보기 모드)는 
+    // 전체 범위를 다시 잡지 않도록 방어 (줌인 상태 유지)
+    if (activeStationId) return;
+
+    // 3. Kakao Maps Bounds 객체 생성
+    const bounds = new window.kakao.maps.LatLngBounds();
+    let hasValidMarker = false;
+
+    stations.forEach((station) => {
+      // Sidebar에서 넘어온 데이터는 이미 lat, lng 필드를 가지고 있음 (WGS84)
+      if (station.lat && station.lng) {
+        bounds.extend(new window.kakao.maps.LatLng(station.lat, station.lng));
+        hasValidMarker = true;
+      }
+    });
+
+    // 4. 유효한 마커가 하나라도 있으면 지도 범위를 재설정
+    if (hasValidMarker) {
+      // setBounds(bounds, paddingBottom, paddingLeft, paddingTop, paddingRight)
+      // 패딩을 주어 마커가 지도 구석에 박히지 않게 여백 확보
+      map.setBounds(bounds, 50, 50, 50, 50); 
     }
-  }, [searchBounds, mapInstance]);
+  }, [map, stations, activeStationId]);
 
-  // [핵심] mapCenter prop이 변경될 때마다 panTo를 강제 실행
+
+  // 5. [옵션] mapCenter prop이 강제로 변경되었을 때 (내 위치 복귀 등) 이동
   useEffect(() => {
-    if (mapInstance && mapCenter && mapCenter.lat && mapCenter.lng) {
-      const newCenter = new window.kakao.maps.LatLng(mapCenter.lat, mapCenter.lng);
-      
-      const timerId = setTimeout(() => {
-          mapInstance.panTo(newCenter);
-          mapInstance.relayout(); 
-          console.log(`✨ 최종 이동 성공: (${mapCenter.lat}, ${mapCenter.lng})`);
-      }, 50);
-
-      return () => clearTimeout(timerId);
+    if (map && mapCenter && mapCenter.lat && mapCenter.lng) {
+      // stations 변경에 의한 setBounds와 충돌 방지를 위해 activeStationId 체크 또는 타이머 사용
+      // 여기서는 activeStationId가 있거나 내 위치 복귀 버튼 눌렀을 때만 작동한다고 가정
+      const moveLatLon = new window.kakao.maps.LatLng(mapCenter.lat, mapCenter.lng);
+      map.panTo(moveLatLon);
     }
-  }, [mapInstance, mapCenter]); 
+  }, [map, mapCenter]);
+
 
   return (
     <div className="map-container">
       <Map 
         center={mapCenter} 
-        style={{ width: "100%", height: "100%" }} 
+        style={{ width: "100%", height: "100vh" }} // 높이 100vh 권장
         level={level}
-        onCreate={setMapInstance}
+        onCreate={setMap} // 지도 생성 시 인스턴스 저장
       >
         {stations.map((s) => {
-            // ★ [필터링 로직] activeStationId가 있고, 현재 마커 ID와 다르면 숨김
-            if (activeStationId && s.UNI_ID !== activeStationId) {
-                return null;
-            }
+            if (!s.lat || !s.lng) return null;
+            
+            const id = s.id || s.UNI_ID;
+            const isActive = activeStationId === id;
+            // 대표 가격 추출 (없으면 0)
+            const displayPrice = s.PRICE || (s.OIL_PRICE && s.OIL_PRICE.find(p=>p.PRICE>0)?.PRICE) || 0;
 
-            const [lng, lat] = proj4(katecDef, "WGS84", [s.GIS_X_COOR, s.GIS_Y_COOR]);
             return (
-                <MapMarker
-                    key={s.UNI_ID}
-                    position={{ lat, lng }}
-                    title={s.OS_NM}
-                    onClick={() => alert(`${s.OS_NM}\n가격: ${s.PRICE}원`)} // TODO: 상세 정보 모달로 변경
-                />
+                // ★ MapMarker 대신 CustomOverlayMap 사용
+                <CustomOverlayMap
+                    key={id}
+                    position={{ lat: s.lat, lng: s.lng }}
+                    yAnchor={1} // 마커의 하단 중앙이 좌표에 오도록 설정
+                    zIndex={isActive ? 100 : 1} // 선택된 마커를 위로
+                >
+                    {/* CSS로 디자인된 HTML 마커 */}
+                    <div 
+                        className={`price-marker-container ${isActive ? 'active' : ''}`}
+                        // onClick={() => onMarkerClick(id)} // 클릭 시 사이드바 스크롤 이동 등의 동작 연결 가능
+                    >
+                        <div className="price-bubble">
+                            {displayPrice > 0 ? `${displayPrice.toLocaleString()}` : '정보없음'}
+                        </div>
+                    </div>
+                </CustomOverlayMap>
             );
         })}
       </Map>
       
-      <button id="recenterBtn" onClick={onRecenter} title="현재 위치로 복귀"> 
+      {/* 내 위치 복귀 버튼 스타일 수정 */}
+      <button 
+        id="recenterBtn" 
+        onClick={onRecenter} 
+        title="현재 위치로 복귀"
+        style={{
+            position: 'absolute', bottom: '30px', right: '30px', zIndex: 10,
+            width: '40px', height: '40px', borderRadius: '50%',
+            backgroundColor: 'white', border: '1px solid #ccc',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.2)', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px'
+        }}
+      > 
         <i className="fa-solid fa-location-crosshairs"></i>
       </button>
     </div>

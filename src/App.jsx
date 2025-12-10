@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useKakaoLoader } from "react-kakao-maps-sdk";
 import proj4 from 'proj4';
 import Header from './components/Header';
@@ -56,6 +56,12 @@ function App() {
 
   const [isMyInfoOpen, setIsMyInfoOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+
+  const [mapMarkers, setMapMarkers] = useState([]);
+
+  const handleMapUpdate = useCallback((newMarkers) => {
+        setMapMarkers(newMarkers);
+  }, []);
 
   const fetchUserInfo = () => {
     const token = localStorage.getItem('atoken');
@@ -381,11 +387,12 @@ function App() {
           activeStationId={activeStationId} 
           onClearSelection={handleClearSelection} 
           myLoc={myLoc}
+          onMapUpdate={handleMapUpdate}
         />
         
         <GasMap 
           mapCenter={activeCenter} 
-          stations={stations} 
+          stations={mapMarkers} 
           level={mapLevel} // Map Level을 props로 전달
           onRecenter={handleRecenterToMyLoc} 
           activeStationId={activeStationId}
