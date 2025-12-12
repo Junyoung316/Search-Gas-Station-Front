@@ -50,8 +50,8 @@ function SignupModal({ isOpen, onClose, onLoginClick }) {
         onClose();
         setFormData({ email: '', password: '', confirmPassword: '', nickname: '' });
       } else {
-        const errorMsg = await response.text();
-        toast.error(`회원가입 실패: ${errorMsg}`);
+        const errorMsg = await response.json();
+        toast.error(`회원가입 실패: ${errorMsg.message}`);
       }
     } catch (error) {
       console.error("Signup Error:", error);

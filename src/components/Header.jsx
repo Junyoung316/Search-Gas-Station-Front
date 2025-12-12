@@ -65,7 +65,7 @@ function Header({ onSearchSubmit, onSignupClick, onLoginClick, onSettingsClick, 
       {/* 1. 로고 */}
       <div className="logo" onClick={handleLogoClick} style={{ cursor: "pointer" }}>
         <i className="fa-solid fa-gas-pump" style={{ marginRight: "10px" }}></i>
-        주유소 찾기
+        오일픽
       </div>
 
       {/* 2. 우측 영역 */}
